@@ -1,3 +1,25 @@
++
+=
+?
+!
+<
+>
+-
+:
+(
+)
+abc
+abc12
+abc012
+0
+012
+01203
+textabc
+abctext
+text
+if
+loop
+"Example String"
 {Example Program #1}
     msg = "Hi!"
     num = 42
@@ -9,5 +31,4 @@
 {nes{commentted}
 msg4ab
 DC$#abc Q%T$#$%T#TQ T$T@
-
 
