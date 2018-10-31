@@ -20,119 +20,93 @@ public class POSLexer {
 	String[] keywordArray = new String[] { "text", "if", "loop" };
 	public static void main(String[] args) throws FileNotFoundException {
 		POSLexer lt = new POSLexer();
-		StringBuilder lexArgs = new StringBuilder();
-		//Checks if the args are empty if so runs test()
-		if(args.length != 0){
-			//checking if calling for the lex function or a filename
-			for(int x = 0; x<3; x++)
-			{
-				lexArgs.append(args[0].charAt(x));
-			}
-			if(lexArgs.toString().equals("lex"))
-			{	
-				//Auto Excludes the surrounding string delimiters
-				lt.lex();
-			}else{
-				//Not empy arg but also not lex means filename. 
-				//main throws FileNotFound for screwups
-				String filename;
-				StringBuilder input=new StringBuilder();
-				for(String s : args){
-					input.append(s);
-					input.append(" ");
-				}
-				filename = input.toString();
-				System.out.println(filename);
-				input = new StringBuilder();
-				Scanner scanner = new Scanner(new File(filename));
-				
-				scanner.useDelimiter(" ");
-				while(scanner.hasNext()){
-					input.append(scanner.next());
-					input.append(" ");
-				}
-				lt.setScanner(scanner);
-				scanner.close();
-				
-			}
-				
-		}else{
-			//Enable to run tests and run the program with no arguments
-			lt.test();	
+		Scanner input = new Scanner(System.in);
+		Boolean close = false;
+		String filename;
+		StringBuilder in=new StringBuilder();
+		for(String s : args){
+			in.append(s);
+			in.append(" ");
 		}
+		filename = in.toString();
+		System.out.println(filename);
+		lt.sc = new Scanner(new File(filename));
+		while(lt.sc.hasNext()){
+			lt.lex(lt.sc.next());
+		}
+
+
+		/*
+		while(!close){	
+			StringBuilder fileInput=new StringBuilder();
+			Scanner scanner = new Scanner(new File(filename));
+			scanner.useDelimiter(" ");
+			while(scanner.hasNext()){
+				fileInput.append(scanner.next());
+				fileInput.append(" ");
+			}
+			scanner.close();
+			Boolean closeFile = false;
+			String command;
+			while(!closeFile){
+				//System.out.println("To call lex enter \"lex()\" to recieve next lexeme definition");
+				//System.out.println("To close POSLexer enter \"close\"");
+				command = input.next();
+				if(command.equals("lex()")){
+					try{
+						lt.lex(fileInput.toString());
+					}catch(NullPointerException e){
+						throw new NullPointerException();
+					}
+				}else if(command.equals("close")){
+					closeFile = true;
+					scanner.close();
+				}else{
+					throw new InvalidParameterException("Enter lex() or close");
+				}
+			}
+		}
+			*/
 		
-		
+			
+				
 	}
-	public void setScanner(Scanner inputScanner)
-	{
-		this.sc = inputScanner;
-	}
+	
 	//Lex function Takes a string of any size and returns the lexical analysis
-	//Needs to be able to be called 
-	public void lex() {
-		String currentString;
-		char currentChar;
-		String str = sc.next();
-		//Formatting
-		str = str.replaceAll("\"", "\\\"");
-		str = str.replace("\n", " ");
-		//Starting the loop
-		sc = new Scanner(str);
-		//Checks for each kind of result and returns the correct definition
-		currentString = sc.next();			
-		for(int i = 0; i<currentString.length();i++){
-			currentChar = currentString.charAt(i);					
-			if(checkLexeme(currentChar)) {
-				defineLexeme(currentChar);
-			}else if(checkComment(currentChar)) {
-				defineComment(currentString); 
-				break;
-			}else if(checkString(currentChar)) {
-				defineString(currentString);
-				break;
-			}else if(checkNumeric(currentChar)) {
-				defineNumeric(currentString);
-				break;
-			}else {
-				defineIdentifier(currentString);
-				break;
-			}
-			
-		}
-		
-		
-	}
 	public void lex(String str) {
+		System.out.println("lex(" + str + ")");
 		String currentString;
 		char currentChar;
-		//String str = sc.next();
 		//Formatting
 		str = str.replaceAll("\"", "\\\"");
 		str = str.replace("\n", " ");
 		//Starting the loop
-		sc = new Scanner(str);
-		//Checks for each kind of result and returns the correct definition
-		currentString = sc.next();			
-		for(int i = 0; i<currentString.length();i++){
-			currentChar = currentString.charAt(i);					
-			if(checkLexeme(currentChar)) {
-				defineLexeme(currentChar);
-			}else if(checkComment(currentChar)) {
-				defineComment(currentString); 
-				break;
-			}else if(checkString(currentChar)) {
-				defineString(currentString);
-				break;
-			}else if(checkNumeric(currentChar)) {
-				defineNumeric(currentString);
-				break;
-			}else {
-				defineIdentifier(currentString);
-				break;
+		Scanner current = new Scanner(str);
+		currentString = str;
+		while(current.hasNext())
+		{
+			//Checks for each kind of result and returns the correct definition
+						
+			for(int i = 0; i<currentString.length();i++){
+				currentChar = currentString.charAt(i);					
+				if(checkLexeme(currentChar)) {
+					defineLexeme(currentChar);
+				}else if(checkComment(currentChar)) {
+					defineComment(currentString); 
+					break;
+				}else if(checkString(currentChar)) {
+					defineString(currentString);
+					break;
+				}else if(checkNumeric(currentChar)) {
+					defineNumeric(currentString);
+					break;
+				}else {
+					defineIdentifier(currentString);
+					break;
+				}
+				
 			}
-			
 		}
-		
 		
 	}
 	
@@ -231,7 +205,7 @@ public class POSLexer {
 		}
 		while(!endCommentFound){
 			commentBuild.append(" ");
-			nextString = sc.next();
+			nextString = this.sc.next();
 			for(int i=0; i<nextString.length(); i++){
 				 if(nextString.charAt(i) == '}') {
 					 commentBuild.append("}");
@@ -424,14 +398,11 @@ public class POSLexer {
 		{
 			System.out.printf("%-30s %-10s\n", output, descriptor);
 		}
-		
-		
 	}
 	//Check Methods
 	//Would rather put the logic here and not in the lex file
 	private Boolean checkLexeme(char c){
 		return containsChar(lexArray,c);
-		
 	}
 	//Only true if the current is a opening string "
 	//define string will close the string and print
@@ -440,8 +411,7 @@ public class POSLexer {
 	}
 	//Only true if the current is a [
 	//Define method will close and print
-	private Boolean checkString(char c)
-	{
+	private Boolean checkString(char c)	{
 		//check if string
 		return c == '\"';
 		
@@ -451,83 +421,25 @@ public class POSLexer {
 		return containsChar(numericArray, c);
 	}
 	//More Helper Methods
-	private boolean containsChar(char[] array, char c)
-	{
+	private boolean containsChar(char[] array, char c){
 		boolean result = false;
-
         for(char index : array){
             if(index == c){
                 result = true;
                 break;
             }
         }
-
         return result;
     }
-	private boolean containsString(String[] array, String c)
-	{
+	private boolean containsString(String[] array, String c){
 		boolean result = false;
-
         for(String index : array){
             if(index.equals(c)){
                 result = true;
                 break;
             }
         }
-
         return result;
     }
-	public void test(){
-		//Used for initial testing
-		POSLexer lt = new POSLexer();	
-		//Keyword Test
-		lt.lex("text");
-		lt.lex("if");
-		lt.lex("loop");
-		System.out.println("-----------------");
-		//String Tests
-		lt.lex("\"Hello\"");
-		//lt.lex("\"");
-		lt.lex("\" Hello @#$ {goodbye}\"");
-		System.out.println("-----------------");
-		//Numeric Tests
-		lt.lex("0");
-		lt.lex("9");
-		lt.lex("1203");
-		lt.lex("0123");
-		//Identifier Test
-		System.out.println("-----------------");
-		lt.lex("msg");
-		lt.lex("i");
-		lt.lex("blue");
-		System.out.println("-----------------");
-		//Comment Test
-		lt.lex("{hello}");
-		lt.lex("{}");
-		lt.lex("{he{{llo}");
-		System.out.println("-----------------");
-		//Operator & Separator Tests
-		lt.lex("+");
-		lt.lex("=");
-		lt.lex("?");
-		lt.lex("!");
-		lt.lex("<");
-		lt.lex(">");
-		lt.lex("-");
-		lt.lex(":");
-		lt.lex("(");
-		lt.lex(")");
-		lt.lex("(+");
-		System.out.println("-----------------");
-		//Complex Testing
-		lt.lex(" {Example Program #1} msg = \"Hi Mom!\" num=42 if : num ? 42 ( text : msg )");
-		System.out.println("-----------------");
-		lt.lex("redtextbl{purple}ue");
-		lt.lex("r\"Blabakadede\"ed42blue");
-		lt.lex("50=52");
-		System.out.println("-----------------");
-		lt.lex("1@2ab3c!@%#");
-		lt.lex("*1@2ab3c!@%#");
-	}
 
 }
